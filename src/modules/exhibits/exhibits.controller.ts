@@ -4,7 +4,10 @@ import { CreateExhibitDto } from './dto/create-exhibit.dto';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { DeleteExhibitDto } from './dto/delete-exhibit.dto';
+import { v4 as uuidv4 } from 'uuid';
+import * as path from 'path';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
 
 @ApiTags('exhibits')
 @ApiBearerAuth() 
@@ -15,9 +18,21 @@ export class ExhibitsController {
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
   @Post()
-  @UseInterceptors(FileInterceptor('image', { dest: './uploads' }))
   @ApiOperation({ summary: 'Створити пост' })
-  async create(@Body() createExhibitDto: CreateExhibitDto, @Request() req, @UploadedFile() file: Express.Multer.File) {
+  @UseInterceptors(FileInterceptor('image', {
+    storage: diskStorage({
+      destination: './uploads',
+      filename: (_, file, callback) => {
+        const uniqueFileName = `${uuidv4()}${path.extname(file.originalname)}`;
+        callback(null, uniqueFileName);
+      },
+    }),
+  }))
+  async create(
+    @Body() createExhibitDto: CreateExhibitDto, 
+    @Request() req, 
+    @UploadedFile() file: Express.Multer.File
+  ) {
     return this.exhibitsService.create(createExhibitDto, req.user.id, file);
   }
 

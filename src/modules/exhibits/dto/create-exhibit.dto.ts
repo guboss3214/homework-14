@@ -14,8 +14,9 @@ export class CreateExhibitDto {
   description: string;
 
   @ApiProperty({ 
-    example: 'https://example.com/post.jpg', 
-    description: 'Посилання на зображення' 
+    type: 'string', 
+    format: 'binary', 
+    description: 'Оберіть файл зображення для завантаження' 
   })
-  imageUrl: string;
+  imageUrl: any;
 }
