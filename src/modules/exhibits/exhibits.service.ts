@@ -3,12 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Exhibit } from './entities/exhibit.entity';
 import { CreateExhibitDto } from './dto/create-exhibit.dto';
+import { NotificationsGateway } from '../notifications/notifications.gateway';
 
 @Injectable()
 export class ExhibitsService {
   constructor(
     @InjectRepository(Exhibit)
     private exhibitsRepository: Repository<Exhibit>,
+    private readonly notificationsGateway: NotificationsGateway,
   ) {}
 
   async create(dto: any, userId: number, file?: any) {
@@ -18,7 +20,11 @@ export class ExhibitsService {
       userId: userId,
     };
 
-    return await this.exhibitsRepository.save(newExhibit);
+    const savedExhibit = await this.exhibitsRepository.save(newExhibit);
+
+    this.notificationsGateway.sendNewPostNotification(savedExhibit.description);
+
+    return savedExhibit;
   }
 
   async findAll() {

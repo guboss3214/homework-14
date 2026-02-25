@@ -15,14 +15,16 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
-  @ApiBearerAuth()
+  @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
   @Get('my-profile')
   @ApiOperation({ summary: 'Отримати профіль поточного користувача' })
   async getProfile(@Request() req) {
-    return this.usersService.findById(req.user.userId);
+    return this.usersService.findById(req.user.id);
   }
 
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   @ApiOperation({ summary: 'Отримати користувача за ID' })
   async findOne(@Param('id') id: string) {

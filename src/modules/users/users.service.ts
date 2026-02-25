@@ -19,9 +19,10 @@ export class UsersService {
   }
 
   async findById(id: number): Promise<User> {
-    const user = await this.usersRepository.findOne({ 
-        where: { id },
-        relations: ['exhibits'] 
+    const user = await this.usersRepository.findOne({
+      where: { id },
+      select: ['id', 'username'], 
+      relations: ['exhibits'],
     });
     
     if (!user) {

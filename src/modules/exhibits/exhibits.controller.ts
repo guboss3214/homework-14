@@ -12,6 +12,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 export class ExhibitsController {
   constructor(private readonly exhibitsService: ExhibitsService) {}
 
+  @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
   @Post()
   @UseInterceptors(FileInterceptor('image', { dest: './uploads' }))
@@ -26,6 +27,7 @@ export class ExhibitsController {
     return this.exhibitsService.findAll();
   }
 
+  @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
   @Get('my-posts')
   @ApiOperation({ summary: 'Отримати пости поточного користувача' })
@@ -33,7 +35,9 @@ export class ExhibitsController {
     return this.exhibitsService.findMyPosts(req.user.userId);
   }
 
+  @ApiBearerAuth('access-token')
   @Delete()
+  @ApiOperation({ summary: 'Видалити пост' })
   async deletePost(@Body() deleteExibitDto: DeleteExhibitDto) {
     return this.exhibitsService.deletePost(deleteExibitDto.id);
   }

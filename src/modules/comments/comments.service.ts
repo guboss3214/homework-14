@@ -55,4 +55,28 @@ export class CommentsService {
       },
     });
   }
+
+  async remove(commentId: number, userId: number) {
+    const comment = await this.commentRepository.findOne({
+      where: { id: commentId }
+    });
+
+    if (!comment) {
+      throw new Error('Коментар не знайдено');
+    }
+
+    if (comment.userId !== userId) {
+      throw new Error('Ви можете видаляти лише свої коментарі');
+    }
+
+    const exhibitId = comment.exhibitId;
+
+    await this.commentRepository.remove(comment);
+    
+    return { 
+      success: true, 
+      commentId: commentId, 
+      exhibitId: exhibitId 
+    };
+  }
 }
