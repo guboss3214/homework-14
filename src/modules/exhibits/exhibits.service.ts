@@ -1,8 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Exhibit } from './entities/exhibit.entity';
-import { CreateExhibitDto } from './dto/create-exhibit.dto';
 import { NotificationsGateway } from '../notifications/notifications.gateway';
 
 @Injectable()
@@ -16,7 +15,7 @@ export class ExhibitsService {
   async create(dto: any, userId: number, file?: any) {
     const newExhibit = {
       description: dto.description,
-      image: file ? file.filename : dto.imageUrl,
+      image: file ? file.filename : '',
       userId: userId,
     };
 
@@ -31,28 +30,74 @@ export class ExhibitsService {
     return await this.exhibitsRepository.find({
       relations: ['user'],
       select: {
-      id: true,
-      description: true,
-      image: true,
-      createdAt: true,
-      userId: true,
-      user: {
         id: true,
-        username: true,
+        description: true,
+        image: true,
+        createdAt: true,
+        userId: true,
+        user: {
+          id: true,
+          username: true,
+        }
       }
-    }
     });
   }
 
-  async deletePost(id: number) {
-    return await this.exhibitsRepository.delete(id);
+  async findById(id: number) {
+    const exhibit = await this.exhibitsRepository.findOne({
+      where: { id },
+      relations: ['user', 'comments'],
+      select: {
+        id: true,
+        description: true,
+        image: true,
+        createdAt: true,
+        userId: true,
+        user: {
+          id: true,
+          username: true,
+        },
+      },
+    });
+
+    if (!exhibit) {
+      throw new NotFoundException(`Експонат з ID ${id} не знайдено`);
+    }
+
+    return exhibit;
+  }
+
+  async deletePost(id: number, userId: number) {
+    const exhibit = await this.exhibitsRepository.findOne({ where: { id } });
+
+    if (!exhibit) {
+      throw new NotFoundException(`Експонат з ID ${id} не знайдено`);
+    }
+
+    if (exhibit.userId !== userId) {
+      throw new ForbiddenException('Ви можете видаляти лише свої експонати');
+    }
+
+    await this.exhibitsRepository.remove(exhibit);
+    return { success: true, id };
   }
 
   async findMyPosts(userId: number) {
     return await this.exhibitsRepository.find({
       where: { userId: userId },
-      order: { createdAt: 'DESC' }, 
+      order: { createdAt: 'DESC' },
       relations: ['user'],
+      select: {
+        id: true,
+        description: true,
+        image: true,
+        createdAt: true,
+        userId: true,
+        user: {
+          id: true,
+          username: true,
+        }
+      }
     });
   }
 }

@@ -32,7 +32,7 @@ export class UsersService {
     return user;
   }
 
-  async create(userData: any): Promise<User> {
+  async create(userData: any): Promise<Omit<User, 'password'>> {
     const existing = await this.findOne(userData.username);
     if (existing) {
       throw new BadRequestException('Користувач з таким ім’ям вже існує');
@@ -46,6 +46,8 @@ export class UsersService {
         password: hashedPassword,
     } as Partial<User>); 
 
-    return await this.usersRepository.save(newUser);
+    const savedUser = await this.usersRepository.save(newUser);
+    const { password, ...result } = savedUser;
+    return result;
   }
 }

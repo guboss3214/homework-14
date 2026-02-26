@@ -1,9 +1,11 @@
-import { NestFactory } from '@nestjs/core';
+import { ClassSerializerInterceptor } from '@nestjs/common';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
   const config = new DocumentBuilder()
     .setTitle('Museum API')
@@ -32,7 +34,7 @@ async function bootstrap() {
     credentials: true,
   });
 
-  await app.listen(3000);
-  console.log(`Application is running on: http://localhost:3000/api`);
+  await app.listen(5000);
+  console.log(`Application is running on: http://localhost:5000/api`);
 }
 bootstrap();

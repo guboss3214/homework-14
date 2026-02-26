@@ -14,7 +14,6 @@ export class AuthService {
     const user = await this.usersService.findOne(loginDto.username);
 
     if (!user || !(await bcrypt.compare(loginDto.password, user.password))) {
-      console.log('Невірне ім’я користувача або пароль', loginDto.username, loginDto.password, await bcrypt.compare(loginDto.password, user.password), user.password)
       throw new UnauthorizedException('Невірне ім’я користувача або пароль');
     }
 

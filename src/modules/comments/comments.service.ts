@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Comment } from './entities/comment.entity';
@@ -11,10 +11,10 @@ export class CommentsService {
     private commentRepository: Repository<Comment>,
   ) {}
 
-  async create(dto: CreateCommentDto, userId: number) {
+  async create(dto: CreateCommentDto, exhibitId: number, userId: number) {
     const newComment = this.commentRepository.create({
       text: dto.text,
-      exhibitId: Number(dto.exhibitId),
+      exhibitId: exhibitId,
       userId: userId,
     });
 
@@ -39,7 +39,7 @@ export class CommentsService {
 
   async findAllByExhibit(exhibitId: number) {
     return await this.commentRepository.find({
-      where: { exhibitId: Number(exhibitId) },
+      where: { exhibitId: exhibitId },
       relations: ['user'],
       order: { createdAt: 'ASC' },
       select: {
@@ -62,21 +62,21 @@ export class CommentsService {
     });
 
     if (!comment) {
-      throw new Error('Коментар не знайдено');
+      throw new NotFoundException('Коментар не знайдено');
     }
 
     if (comment.userId !== userId) {
-      throw new Error('Ви можете видаляти лише свої коментарі');
+      throw new ForbiddenException('Ви можете видаляти лише свої коментарі');
     }
 
     const exhibitId = comment.exhibitId;
 
     await this.commentRepository.remove(comment);
-    
-    return { 
-      success: true, 
-      commentId: commentId, 
-      exhibitId: exhibitId 
+
+    return {
+      success: true,
+      commentId: commentId,
+      exhibitId: exhibitId
     };
   }
 }

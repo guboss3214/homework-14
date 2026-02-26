@@ -1,3 +1,4 @@
+import { Expose } from 'class-transformer';
 import { Comment } from "src/modules/comments/entities/comment.entity";
 import { User } from "src/modules/users/entities/user.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
@@ -11,9 +12,10 @@ export class Exhibit {
   description: string;
 
   @Column()
-  image: string; 
+  image: string;
 
-  @ManyToOne(() => User, (user) => user.exhibits)
+  @Expose()
+  @ManyToOne(() => User, (user) => user.exhibits, { eager: true })
   @JoinColumn({ name: 'userId' })
   user: User;
 

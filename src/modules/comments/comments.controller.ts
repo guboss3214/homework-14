@@ -1,33 +1,41 @@
-import { Controller, Post, Body, Get, Param, UseGuards, Request, Delete, Req } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, UseGuards, Request, Delete } from '@nestjs/common';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
-@ApiTags('comments')
-@Controller('comments')
+@ApiTags('Comments')
+@Controller('api/exhibits')
 export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
 
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
-  @Post()
-  @ApiOperation({ summary: 'Додати коментар' })
-  async create(@Body() dto: CreateCommentDto, @Request() req) {
-    return this.commentsService.create(dto, req.user.id);
+  @Post(':exhibitId/comments')
+  @ApiOperation({ summary: 'Додати коментар до експонату' })
+  async create(
+    @Param('exhibitId') exhibitId: string,
+    @Body() dto: CreateCommentDto,
+    @Request() req,
+  ) {
+    return this.commentsService.create(dto, Number(exhibitId), req.user.id);
   }
 
-  @Get('exhibit/:id')
-  @ApiOperation({ summary: 'Отримати всі коментарі до поста' })
-  async findByExhibit(@Param('id') id: number) {
-    return this.commentsService.findAllByExhibit(id);
+  @Get(':exhibitId/comments')
+  @ApiOperation({ summary: 'Отримати всі коментарі до експонату' })
+  async findByExhibit(@Param('exhibitId') exhibitId: string) {
+    return this.commentsService.findAllByExhibit(Number(exhibitId));
   }
 
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
-  @Delete(':id')
+  @Delete(':exhibitId/comments/:commentId')
   @ApiOperation({ summary: 'Видалити коментар' })
-  async delete(@Param('id') id: string, @Req() req: any) {
-    return await this.commentsService.remove(Number(id), req.user.id);
+  async delete(
+    @Param('exhibitId') exhibitId: string,
+    @Param('commentId') commentId: string,
+    @Request() req,
+  ) {
+    return await this.commentsService.remove(Number(commentId), req.user.id);
   }
 }
